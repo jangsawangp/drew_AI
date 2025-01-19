@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>เล่านิทานจากภาพ</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+      body {
+        background: linear-gradient(120deg, #4e82d6 0%, #43d86b 100%);
+        min-height: 100vh;
+        text-align: center;
+        margin: 0;
+        padding: 0;
+      }
+      .container {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      h1 {
+        color: white;
+        font-size: 2rem;
+        margin: 0;
+        padding: 20px 0;
+        background: rgba(0, 0, 0, 0.1);
+      }
+      .subtitle {
+        color: white;
+        opacity: 0.9;
+        margin: 0;
+        padding: 10px 0 20px 0;
+        background: rgba(0, 0, 0, 0.05);
+      }
+      .card {
+        background: white;
+        padding: 20px;
+        min-height: calc(100vh - 116px);
+        margin: 0;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .card-content {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        gap: 20px;
+      }
+
+      @media (min-width: 768px) {
+        .card-content {
+          flex-direction: row;
+          max-width: 100%;
+          padding: 0 20px;
+        }
+        .media-section {
+          flex: 1;
+          padding-right: 20px;
+        }
+        .result-section {
+          flex: 1;
+          border-left: 1px solid #eee;
+          padding-left: 20px;
+        }
+        .media-container {
+          min-height: calc(100vh - 250px);
+        }
+      }
+
+      .media-section,
+      .result-section {
+        display: flex;
+        flex-direction: column;
+      }
+      .media-container {
+        position: relative;
+        flex: 1;
+        min-height: 300px;
+        display: flex;
+        flex-direction: column;
+      }
+
+      @media (min-width: 768px) {
+        .media-container {
+          min-height: 400px;
+        }
+      }
+      .switch-view {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        z-index: 10;
+        background: rgba(16, 148, 165, 0.9);
+
+        padding: 8px 15px;
+        border-radius: 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        transition: all 0.3s ease;
+      }
+      .switch-view:hover {
+        background: #4285f4;
+        color: white;
+      }
+      .switch-view i {
+        font-size: 18px;
+      }
+      #webcam,
+      #captured-image {
+        width: 100%;
+        height: 100%;
+        border-radius: 10px;
+        border: 3px solid rgba(255, 255, 255, 0.5);
+        margin-bottom: 20px;
+        object-fit: contain;
+      }
+      #captured-image {
+        display: none;
+      }
+      button {
+        background: #4285f4;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: 0.3s;
+        margin: 5px;
+      }
+      button:hover {
+        background: #1a73e8;
+        transform: scale(1.05);
+      }
+      button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+      }
+      .result {
+        height: 100%;
+        margin-top: 0;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        display: none;
+        overflow-y: auto;
+      }
+      .result.show {
+        display: flex;
+        flex-direction: column;
+      }
+      .result-text-container {
+        flex: 1;
+        overflow-y: auto;
+        margin: 15px 0;
+      }
+      .status-message {
+        color: #666;
+        margin-top: 10px;
+        font-size: 0.9rem;
+      }
+      .spinner {
+        display: none;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-top: 3px solid #4285f4;
+        border-radius: 50%;
+        margin-left: 10px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      .audio-controls {
+        margin-top: 15px;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+      }
+      .audio-controls button {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+      #canvas {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>เล่านิทานจากภาพ</h1>
+      <p class="subtitle">ถ่ายภาพแล้วให้ AI เล่านิทานจากภาพของคุณ</p>
+
+      <div class="card">
+        <div class="card-content">
+          <div class="media-section">
+            <div class="media-container">
+              <button class="switch-view" id="switch-camera">
+                <i class="fas fa-camera-rotate"></i> สลับกล้อง
+              </button>
+              <video id="webcam" autoplay playsinline></video>
+              <img id="captured-image" alt="ภาพที่ถ่าย" />
+            </div>
+            <div style="text-align: center; margin-top: 10px">
+              <button id="capture-btn">
+                ถ่ายภาพและเล่านิทาน
+                <span class="spinner"></span>
+              </button>
+              <button id="retake-btn" style="display: none">ถ่ายใหม่</button>
+            </div>
+          </div>
+          <div class="result-section">
+            <div id="status" class="status-message"></div>
+            <div id="result" class="result">
+              <h3>นิทานจากภาพของคุณ</h3>
+              <p
+                id="result-text"
+                style="
+                  text-align: left;
+                  line-height: 1.6;
+                  white-space: pre-line;
+                "
+              ></p>
+              <div class="audio-controls">
+                <button id="play-btn">
+                  <span class="play-icon">▶️</span> เล่นเสียง
+                </button>
+                <button id="pause-btn" style="display: none">
+                  <span class="pause-icon">⏸️</span> หยุดชั่วคราว
+                </button>
+                <button id="stop-btn" style="display: none">
+                  <span class="stop-icon">⏹️</span> หยุด
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script
+      type="text/javascript"
+      src="https://www.freevisitorcounters.com/auth.php?id=28460266acd687eee093c2363ad917f695f2a7de"
+    ></script>
+    <script
+      type="text/javascript"
+      src="https://www.freevisitorcounters.com/en/home/counter/1289408/t/5"
+    ></script>
+    <canvas id="canvas"></canvas>
+
+    <script>
+      const video = document.getElementById("webcam");
+      const canvas = document.getElementById("canvas");
+      const capturedImage = document.getElementById("captured-image");
+      const captureBtn = document.getElementById("capture-btn");
+      const retakeBtn = document.getElementById("retake-btn");
+      const result = document.getElementById("result");
+      const resultText = document.getElementById("result-text");
+      const spinner = document.querySelector(".spinner");
+      const statusDiv = document.getElementById("status");
+      const playBtn = document.getElementById("play-btn");
+      const pauseBtn = document.getElementById("pause-btn");
+      const stopBtn = document.getElementById("stop-btn");
+
+      // Replace with your Gemini API key
+      const API_KEY = "AIzaSyAG64E5QRI_JiRqgyvOh0urpdJeJAO1Cas";
+      const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
+
+      // Thai story prompt
+      const STORY_PROMPT = `จากภาพที่เห็น กรุณาเล่านิทานสั้นๆ สนุกๆ ที่เกี่ยวข้องกับสิ่งที่เห็นในภาพ ความยาวประมาณ 3 ย่อหน้า 
+        ให้มีการดำเนินเรื่องดังนี้:
+        1. แนะนำตัวละครหลักจากภาพ
+        2. มีเหตุการณ์หรือปัญหาที่เกิดขึ้น
+        3. วิธีแก้ปัญหาและบทสรุปที่มีข้อคิด
+        4. ห้ามมีลัญลักษณ์พิเศษ
+        โดยใช้ภาษาที่เข้าใจง่าย เหมาะสำหรับเด็ก`;
+
+      let speechSynth = window.speechSynthesis;
+      let speaking = false;
+      let currentUtterance = null;
+      let currentFacingMode = "user";
+
+      async function startWebcam(facingMode = "user") {
+        try {
+          // Stop any existing stream
+          if (video.srcObject) {
+            video.srcObject.getTracks().forEach((track) => track.stop());
+          }
+
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: facingMode },
+          });
+          video.srcObject = stream;
+          currentFacingMode = facingMode;
+        } catch (error) {
+          console.error("Error accessing webcam:", error);
+          alert("ไม่สามารถเข้าถึงกล้องได้ กรุณาตรวจสอบการอนุญาตใช้งานกล้อง");
+        }
+      }
+
+      async function switchCamera() {
+        const newFacingMode =
+          currentFacingMode === "user" ? "environment" : "user";
+        await startWebcam(newFacingMode);
+      }
+
+      function showImage(imageUrl) {
+        video.style.display = "none";
+        capturedImage.src = imageUrl;
+        capturedImage.style.display = "block";
+        captureBtn.style.display = "none";
+        retakeBtn.style.display = "inline-block";
+      }
+
+      function retakePhoto() {
+        video.style.display = "block";
+        capturedImage.style.display = "none";
+        captureBtn.style.display = "inline-block";
+        retakeBtn.style.display = "none";
+        result.classList.remove("show");
+        stopSpeaking();
+      }
+
+      function speakText(text) {
+        stopSpeaking();
+
+        currentUtterance = new SpeechSynthesisUtterance(text);
+        currentUtterance.lang = "th-TH";
+        currentUtterance.rate = 1;
+        currentUtterance.pitch = 1;
+
+        currentUtterance.onstart = () => {
+          speaking = true;
+          playBtn.style.display = "none";
+          pauseBtn.style.display = "inline-block";
+          stopBtn.style.display = "inline-block";
+        };
+
+        currentUtterance.onend = () => {
+          speaking = false;
+          playBtn.style.display = "inline-block";
+          pauseBtn.style.display = "none";
+          stopBtn.style.display = "none";
+        };
+
+        speechSynth.speak(currentUtterance);
+      }
+
+      function pauseSpeaking() {
+        if (speaking) {
+          speechSynth.pause();
+          playBtn.style.display = "inline-block";
+          pauseBtn.style.display = "none";
+        }
+      }
+
+      function resumeSpeaking() {
+        if (speechSynth.paused) {
+          speechSynth.resume();
+          playBtn.style.display = "none";
+          pauseBtn.style.display = "inline-block";
+        } else {
+          speakText(resultText.textContent);
+        }
+      }
+
+      function stopSpeaking() {
+        speechSynth.cancel();
+        speaking = false;
+        playBtn.style.display = "inline-block";
+        pauseBtn.style.display = "none";
+        stopBtn.style.display = "none";
+      }
+
+      async function uploadToGemini(base64Image) {
+        try {
+          spinner.style.display = "inline-block";
+          captureBtn.disabled = true;
+          statusDiv.textContent = "กำลังวิเคราะห์ภาพและเขียนนิทาน...";
+
+          const requestBody = {
+            contents: [
+              {
+                parts: [
+                  { text: STORY_PROMPT },
+                  {
+                    inline_data: {
+                      mime_type: "image/jpeg",
+                      data: base64Image.split(",")[1],
+                    },
+                  },
+                ],
+              },
+            ],
+            generationConfig: {
+              temperature: 0.4,
+              topK: 32,
+              topP: 1,
+              maxOutputTokens: 1024,
+            },
+            safetySettings: [
+              {
+                category: "HARM_CATEGORY_HARASSMENT",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE",
+              },
+              {
+                category: "HARM_CATEGORY_HATE_SPEECH",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE",
+              },
+              {
+                category: "HARM_CATEGORY_SEXUALLY_EXPLICIT",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE",
+              },
+              {
+                category: "HARM_CATEGORY_DANGEROUS_CONTENT",
+                threshold: "BLOCK_MEDIUM_AND_ABOVE",
+              },
+            ],
+          };
+
+          const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestBody),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
+          const data = await response.json();
+          result.classList.add("show");
+          resultText.textContent = data.candidates[0].content.parts[0].text;
+          statusDiv.textContent = "";
+        } catch (error) {
+          console.error("Error:", error);
+          statusDiv.textContent = "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง";
+        } finally {
+          spinner.style.display = "none";
+          captureBtn.disabled = false;
+        }
+      }
+
+      captureBtn.addEventListener("click", () => {
+        const ctx = canvas.getContext("2d");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Convert canvas to base64 image
+        const base64Image = canvas.toDataURL("image/jpeg", 0.9);
+        showImage(base64Image);
+        uploadToGemini(base64Image);
+      });
+
+      retakeBtn.addEventListener("click", retakePhoto);
+      playBtn.addEventListener("click", resumeSpeaking);
+      pauseBtn.addEventListener("click", pauseSpeaking);
+      stopBtn.addEventListener("click", stopSpeaking);
+
+      document
+        .getElementById("switch-camera")
+        .addEventListener("click", switchCamera);
+      window.onload = () => startWebcam("user");
+    </script>
+    <div style="text-align: center; margin-top: 20px; padding: 10px; color: white; font-size: 0.9rem; background: rgba(0, 0, 0, 0.1);">
+      <p>นายปรีชา แจ้งสว่าง</p>
+      <p>ตำแหน่ง ครู โรงเรียนบ้านตะเคียนช่างเหล็ก</p>
+    </div>
+  </body>
+</html>
