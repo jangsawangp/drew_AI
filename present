@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>นิทานภาพมหัศจรรย์</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(120deg, #e0f7fa, #80deea);
+            color: #004d40;
+        }
+        header {
+            text-align: center;
+            padding: 2rem;
+            background: #006064;
+            color: #e0f7fa;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            padding: 1rem;
+            background: #004d40;
+            color: #e0f7fa;
+        }
+        nav a {
+            text-decoration: none;
+            color: #e0f7fa;
+            font-size: 1.1rem;
+            transition: color 0.3s;
+        }
+        nav a:hover {
+            color: #b2ebf2;
+        }
+        section {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 1.5rem;
+            background: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        section h2 {
+            margin-bottom: 1rem;
+            color: #00796b;
+        }
+        section ul {
+            padding-left: 1.5rem;
+        }
+        footer {
+            text-align: center;
+            padding: 1rem;
+            background: #004d40;
+            color: #e0f7fa;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+        .interactive {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+        .interactive div {
+            flex: 1 1 calc(30% - 1rem);
+            min-width: 200px;
+            background: #b2dfdb;
+            border-radius: 10px;
+            text-align: center;
+            padding: 1rem;
+            transition: transform 0.3s;
+        }
+        .interactive div:hover {
+            transform: translateY(-10px);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>นิทานภาพมหัศจรรย์</h1>
+        <p>ผจญภัยในโลกแห่งจินตนาการด้วยเทคโนโลยี AI</p>
+    </header>
+    <nav>
+        <a href="#introduction">ที่มาและความสำคัญ</a>
+        <a href="#features">การทำงานของระบบ</a>
+        <a href="#benefits">ประโยชน์ทางการศึกษา</a>
+        <a href="#future">แผนพัฒนาต่อ</a>
+    </nav>
+    <section id="introduction">
+        <h2>ที่มาและความสำคัญ</h2>
+        <p>ในยุคปัจจุบัน การเล่านิทานยังคงเป็นเครื่องมือสำคัญในการพัฒนาทักษะภาษาและจินตนาการของเด็ก แต่บางครั้งครูอาจต้องการเครื่องมือที่ช่วยสร้างสรรค์เนื้อหานิทานที่แปลกใหม่และน่าสนใจ โครงงานนี้จึงถูกพัฒนาขึ้นเพื่อช่วยให้การสร้างนิทานจากภาพถ่ายเป็นเรื่องง่ายและสนุก</p>
+    </section>
+    <section id="features">
+        <h2>การทำงานของระบบ</h2>
+        <ul>
+            <li>การถ่ายภาพ: ระบบช่วยให้ถ่ายภาพและเลือกใช้งานได้สะดวก</li>
+            <li>การสร้างนิทาน: ใช้ AI Gemini วิเคราะห์และสร้างเนื้อหา</li>
+            <li>ระบบเสียง: รองรับการอ่านนิทานอัตโนมัติ</li>
+        </ul>
+    </section>
+    <section id="benefits">
+        <h2>ประโยชน์ทางการศึกษา</h2>
+        <ul>
+            <li>พัฒนาทักษะการเรียนรู้: ส่งเสริมความคิดสร้างสรรค์และจินตนาการ</li>
+            <li>การประยุกต์ใช้ในห้องเรียน: ใช้เป็นสื่อการสอนและกิจกรรมกลุ่ม</li>
+        </ul>
+    </section>
+    <section id="future">
+        <h2>สรุปและแผนพัฒนาต่อ</h2>
+        <p>ในอนาคตเรามีแผนที่จะพัฒนาต่อยอด เช่น เพิ่มธีมนิทาน รองรับการแชร์ และฟีเจอร์การบันทึกเสียง</p>
+    </section>
+    <footer>
+        <p>ขอขอบคุณครูที่ปรึกษาและทุกท่านที่ให้ความสนใจ</p>
+    </footer>
+</body>
+</html>
