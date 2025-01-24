@@ -281,6 +281,12 @@
     <div style="text-align: center; margin-top: 20px; padding: 10px; color: white; font-size: 0.9rem; background: rgba(0, 0, 0, 0.1);">
       <p>นายปรีชา แจ้งสว่าง</p>
       <p>ตำแหน่ง ครู โรงเรียนบ้านตะเคียนช่างเหล็ก</p>
+      <!-- เพิ่มโค้ดนับจำนวนผู้เข้าชม -->
+      <div style="margin-top: 10px;">
+        <a href='http://www.freevisitorcounters.com'>freevisitorcounters</a>
+        <script type='text/javascript' src='https://www.freevisitorcounters.com/auth.php?id=2adc79d2e797e3f5ea590a53d6595c4f436ac953'></script>
+        <script type="text/javascript" src="https://www.freevisitorcounters.com/en/home/counter/1292747/t/1"></script>
+      </div>
     </div>
 
     <script>
@@ -302,18 +308,16 @@
       const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
       const STORY_PROMPT = `จากภาพที่เห็น กรุณาเล่านิทานสั้นๆ สนุกๆ ที่เกี่ยวข้องกับสิ่งที่เห็นในภาพ ความยาวประมาณ 3 ย่อหน้า 
-        1. แนะนำตัวละครหลักจากภาพ
-        2. มีเหตุการณ์หรือปัญหาที่เกิดขึ้น
-        3. วิธีแก้ปัญหาและบทสรุปที่มีข้อคิด
-        4. ห้ามมีลัญลักษณ์พิเศษ
-        โดยใช้ภาษาที่เข้าใจง่าย เหมาะสำหรับเด็ก`;
+        - แนะนำตัวละครหลักจากภาพ
+        - มีเหตุการณ์หรือปัญหาที่เกิดขึ้น
+        - วิธีแก้ปัญหาและบทสรุปที่มีข้อคิด
+        โดยใช้ภาษาที่เข้าใจง่าย เหมาะสำหรับเด็ก และห้ามมีเครื่องหมายพิเศษหรือตัวเลข`;
 
       const ENGLISH_STORY_PROMPT = `From the image you see, please tell a short, fun story related to what is seen in the image. The length should be about 3 paragraphs.
-        1. Introduce the main characters from the image
-        2. Include an event or problem that occurs
-        3. The solution and a conclusion with a moral lesson
-        4. Do not include special symbols
-        Use simple language that is easy to understand and suitable for children`;
+        - Introduce the main characters from the image
+        - Include an event or problem that occurs
+        - The solution and a conclusion with a moral lesson
+        Use simple language that is easy to understand and suitable for children, and do not include special symbols or numbers`;
 
       let currentLanguage = 'th'; // เริ่มต้นด้วยภาษาไทย
       let speechSynth = window.speechSynthesis;
@@ -461,8 +465,14 @@
           }
 
           const data = await response.json();
+          let storyText = data.candidates[0].content.parts[0].text;
+
+          // ลบเครื่องหมายพิเศษและตัวเลขออกจากนิทาน
+          storyText = storyText.replace(/[0-9]. /g, ""); // ลบตัวเลขและจุดตามหลัง
+          storyText = storyText.replace(/[-*•]/g, ""); // ลบเครื่องหมาย bullet points
+
           result.classList.add("show");
-          resultText.textContent = data.candidates[0].content.parts[0].text;
+          resultText.textContent = storyText; // แสดงนิทานที่ปรับแล้ว
           statusDiv.textContent = "";
         } catch (error) {
           console.error("Error:", error);
