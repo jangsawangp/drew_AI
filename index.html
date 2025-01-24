@@ -488,25 +488,24 @@
         .addEventListener("click", switchCamera);
       window.onload = () => startWebcam("user");
     </script>
-   <!-- เพิ่มปุ่มแชร์ด้านล่างนิทาน -->
+  <!-- เพิ่มปุ่มแชร์ด้านล่างนิทาน -->
 <div style="text-align: center; margin-top: 20px;">
+  <!-- Facebook share -->
   <a href="https://www.facebook.com/sharer/sharer.php?u=" id="facebook-share" target="_blank">
     <button style="background: #4267B2; color: white; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: 600; margin: 5px;">
       <i class="fab fa-facebook-f"></i> แชร์บน Facebook
     </button>
   </a>
   
-  <a href="https://www.instagram.com/sharer.php?u=" id="instagram-share" target="_blank">
-    <button style="background: #C13584; color: white; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: 600; margin: 5px;">
-      <i class="fab fa-instagram"></i> แชร์บน Instagram
-    </button>
-  </a>
+  <!-- Instagram share -->
+  <button id="instagram-share" style="background: #C13584; color: white; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: 600; margin: 5px;">
+    <i class="fab fa-instagram"></i> แชร์บน Instagram
+  </button>
   
-  <a href="https://www.tiktok.com/share?url=" id="tiktok-share" target="_blank">
-    <button style="background: #000000; color: white; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: 600; margin: 5px;">
-      <i class="fab fa-tiktok"></i> แชร์บน TikTok
-    </button>
-  </a>
+  <!-- TikTok share -->
+  <button id="tiktok-share" style="background: #000000; color: white; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: 600; margin: 5px;">
+    <i class="fab fa-tiktok"></i> แชร์บน TikTok
+  </button>
 </div>
 
 <script>
@@ -514,10 +513,18 @@
   const currentURL = window.location.href;
 
   // อัพเดต URL ที่จะแชร์ให้เป็น URL ปัจจุบัน
-  document.getElementById('facebook-share').href += currentURL;
-  document.getElementById('instagram-share').href += currentURL;
-  document.getElementById('tiktok-share').href += currentURL;
+  document.getElementById('facebook-share').href += encodeURIComponent(currentURL);
+
+  // Instagram และ TikTok ไม่สามารถแชร์โดยตรงผ่าน URL ดังนั้นให้แสดงข้อความให้ผู้ใช้แชร์ผ่านแอป
+  document.getElementById('instagram-share').addEventListener('click', () => {
+    alert("แชร์ผ่านแอป Instagram");
+  });
+
+  document.getElementById('tiktok-share').addEventListener('click', () => {
+    alert("แชร์ผ่านแอป TikTok");
+  });
 </script>
+
 
 
     <div style="text-align: center; margin-top: 20px; padding: 10px; color: white; font-size: 0.9rem; background: rgba(0, 0, 0, 0.1);">
