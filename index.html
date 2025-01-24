@@ -490,25 +490,34 @@
     </script>
     <!-- เพิ่มปุ่มแชร์ด้านล่างนิทาน -->
 <div style="text-align: center; margin-top: 20px;">
-  <a href="https://www.facebook.com/sharer/sharer.php?u={URL}" target="_blank">
+  <a href="https://www.facebook.com/sharer/sharer.php?u=" id="facebook-share" target="_blank">
     <button style="background: #4267B2; color: white; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: 600; margin: 5px;">
       <i class="fab fa-facebook-f"></i> แชร์บน Facebook
     </button>
   </a>
   
-  <a href="https://www.instagram.com/sharer.php?u={URL}" target="_blank">
+  <a href="https://www.instagram.com/sharer.php?u=" id="instagram-share" target="_blank">
     <button style="background: #C13584; color: white; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: 600; margin: 5px;">
       <i class="fab fa-instagram"></i> แชร์บน Instagram
     </button>
   </a>
   
-  <a href="https://www.tiktok.com/share?url={URL}" target="_blank">
+  <a href="https://www.tiktok.com/share?url=" id="tiktok-share" target="_blank">
     <button style="background: #000000; color: white; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: 600; margin: 5px;">
       <i class="fab fa-tiktok"></i> แชร์บน TikTok
     </button>
   </a>
 </div>
 
+<script>
+  // ใช้ window.location.href เพื่อดึง URL ปัจจุบันของหน้า
+  const currentURL = window.location.href;
+
+  // อัพเดต URL ที่จะแชร์ให้เป็น URL ปัจจุบัน
+  document.getElementById('facebook-share').href += currentURL;
+  document.getElementById('instagram-share').href += currentURL;
+  document.getElementById('tiktok-share').href += currentURL;
+</script>
     <div style="text-align: center; margin-top: 20px; padding: 10px; color: white; font-size: 0.9rem; background: rgba(0, 0, 0, 0.1);">
       <p>นายปรีชา แจ้งสว่าง</p>
       <p>ตำแหน่ง ครู โรงเรียนบ้านตะเคียนช่างเหล็ก</p>
