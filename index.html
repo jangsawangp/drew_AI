@@ -8,6 +8,7 @@
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
       rel="stylesheet"
     />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
       * {
         margin: 0;
@@ -33,6 +34,7 @@
         margin: 0;
         padding: 20px 0;
         background: rgba(0, 0, 0, 0.1);
+        animation: fadeIn 1s ease-in-out;
       }
       .subtitle {
         color: white;
@@ -143,6 +145,7 @@
       button:hover {
         background: #1a73e8;
         transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
       }
       button:disabled {
         opacity: 0.7;
@@ -203,6 +206,46 @@
       #canvas {
         display: none;
       }
+      .dark-mode {
+        background: linear-gradient(120deg, #1e3c72 0%, #2a5298 100%);
+        color: white;
+      }
+      .dark-mode .card {
+        background: #333;
+        color: white;
+      }
+      .dark-mode .result {
+        background: #444;
+        color: white;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      #chat-box {
+        position: fixed;
+        bottom: 20px;
+        left: 20px;
+        width: 300px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        padding: 10px;
+      }
+      #chat-messages {
+        height: 200px;
+        overflow-y: auto;
+        margin-bottom: 10px;
+      }
+      #chat-input {
+        width: 100%;
+        padding: 10px;
+        border-radius: 25px;
+        border: 1px solid #ccc;
+      }
+      .star {
+        cursor: pointer;
+      }
     </style>
   </head>
   <body>
@@ -256,6 +299,23 @@
                 <button id="stop-btn" style="display: none">
                   <span class="stop-icon">⏹️</span> หยุด
                 </button>
+                <button id="download-btn" style="background: #34a853;">
+                  <i class="fas fa-download"></i> ดาวน์โหลดนิทาน
+                </button>
+                <button id="share-image-btn" style="background: #ff6f61;">
+                  <i class="fas fa-share"></i> แชร์เป็นรูปภาพ
+                </button>
+                <button id="history-btn" style="background: #ffa500;">
+                  <i class="fas fa-history"></i> ดูประวัตินิทาน
+                </button>
+              </div>
+              <div id="rating" style="margin-top: 10px;">
+                <span>ให้คะแนนนิทาน:</span>
+                <span class="star" data-value="1">⭐</span>
+                <span class="star" data-value="2">⭐</span>
+                <span class="star" data-value="3">⭐</span>
+                <span class="star" data-value="4">⭐</span>
+                <span class="star" data-value="5">⭐</span>
               </div>
             </div>
           </div>
@@ -289,6 +349,17 @@
       </div>
     </div>
 
+    <!-- เพิ่มปุ่มเปลี่ยนธีม -->
+    <button id="theme-toggle" style="position: fixed; bottom: 20px; right: 20px; padding: 10px 20px; border-radius: 25px; background: #4285f4; color: white; border: none; cursor: pointer;">
+      <i class="fas fa-moon"></i> เปลี่ยนธีม
+    </button>
+
+    <!-- เพิ่มแชทบ็อกซ์ -->
+    <div id="chat-box">
+      <div id="chat-messages"></div>
+      <input type="text" id="chat-input" placeholder="ถามอะไรก็ได้...">
+    </div>
+
     <script>
       const video = document.getElementById("webcam");
       const canvas = document.createElement("canvas"); // สร้าง canvas ใหม่
@@ -303,6 +374,14 @@
       const pauseBtn = document.getElementById("pause-btn");
       const stopBtn = document.getElementById("stop-btn");
       const changeLanguageBtn = document.getElementById("change-language-btn");
+      const downloadBtn = document.getElementById("download-btn");
+      const shareImageBtn = document.getElementById("share-image-btn");
+      const historyBtn = document.getElementById("history-btn");
+      const themeToggle = document.getElementById("theme-toggle");
+      const chatBox = document.getElementById("chat-box");
+      const chatMessages = document.getElementById("chat-messages");
+      const chatInput = document.getElementById("chat-input");
+      const stars = document.querySelectorAll(".star");
 
       const API_KEY = "AIzaSyAG64E5QRI_JiRqgyvOh0urpdJeJAO1Cas";
       const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
@@ -323,6 +402,7 @@
       let speechSynth = window.speechSynthesis;
       let speaking = false;
       let currentUtterance = null;
+      let storyHistory = [];
 
       async function startWebcam(facingMode = "user") {
         try {
@@ -474,6 +554,7 @@
           result.classList.add("show");
           resultText.textContent = storyText; // แสดงนิทานที่ปรับแล้ว
           statusDiv.textContent = "";
+          saveToHistory(storyText); // บันทึกนิทานลงประวัติ
         } catch (error) {
           console.error("Error:", error);
           statusDiv.textContent = "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง";
@@ -498,6 +579,50 @@
         uploadToGemini(base64Image);
       }
 
+      function downloadStory() {
+        const storyText = document.getElementById("result-text").textContent;
+        const blob = new Blob([storyText], { type: "text/plain" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "นิทานจากภาพ.txt";
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      function shareAsImage() {
+        html2canvas(document.querySelector(".result")).then(canvas => {
+          const image = canvas.toDataURL("image/png");
+          const a = document.createElement("a");
+          a.href = image;
+          a.download = "นิทานจากภาพ.png";
+          a.click();
+        });
+      }
+
+      function saveToHistory(story) {
+        storyHistory.push(story);
+        localStorage.setItem("storyHistory", JSON.stringify(storyHistory));
+      }
+
+      function showHistory() {
+        const history = JSON.parse(localStorage.getItem("storyHistory")) || [];
+        const historyList = history.map((story, index) => `<div>${index + 1}. ${story}</div>`).join("");
+        alert(historyList);
+      }
+
+      function showNotification(message) {
+        if (Notification.permission === "granted") {
+          new Notification("แจ้งเตือน", { body: message });
+        } else if (Notification.permission !== "denied") {
+          Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+              new Notification("แจ้งเตือน", { body: message });
+            }
+          });
+        }
+      }
+
       captureBtn.addEventListener("click", () => {
         const ctx = canvas.getContext("2d");
         canvas.width = video.videoWidth;
@@ -513,6 +638,23 @@
       playBtn.addEventListener("click", resumeSpeaking);
       pauseBtn.addEventListener("click", pauseSpeaking);
       stopBtn.addEventListener("click", stopSpeaking);
+      downloadBtn.addEventListener("click", downloadStory);
+      shareImageBtn.addEventListener("click", shareAsImage);
+      historyBtn.addEventListener("click", showHistory);
+      themeToggle.addEventListener("click", () => {
+        document.body.classList.toggle("dark-mode");
+        if (document.body.classList.contains("dark-mode")) {
+          themeToggle.innerHTML = '<i class="fas fa-sun"></i> เปลี่ยนธีม';
+        } else {
+          themeToggle.innerHTML = '<i class="fas fa-moon"></i> เปลี่ยนธีม';
+        }
+      });
+      stars.forEach(star => {
+        star.addEventListener("click", () => {
+          alert(`คุณให้คะแนน: ${star.getAttribute("data-value")} ดาว`);
+        });
+      });
+
       document.getElementById("switch-camera").addEventListener("click", () => {
         const newFacingMode = currentFacingMode === "user" ? "environment" : "user";
         startWebcam(newFacingMode);
