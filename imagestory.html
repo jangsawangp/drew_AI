@@ -240,6 +240,12 @@
                   white-space: pre-line;
                 "
               ></p>
+              <!-- เพิ่มปุ่มเปลี่ยนภาษา -->
+              <div style="text-align: center; margin-top: 20px;">
+                <button id="change-language-btn" style="background: #34a853; color: white; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: 600; margin: 5px;">
+                  เปลี่ยนภาษาเป็นภาษาอังกฤษ
+                </button>
+              </div>
               <div class="audio-controls">
                 <button id="play-btn">
                   <span class="play-icon">▶️</span> เล่นเสียง
@@ -257,19 +263,29 @@
       </div>
     </div>
 
-    <script
-      type="text/javascript"
-      src="https://www.freevisitorcounters.com/auth.php?id=28460266acd687eee093c2363ad917f695f2a7de"
-    ></script>
-    <script
-      type="text/javascript"
-      src="https://www.freevisitorcounters.com/en/home/counter/1289408/t/5"
-    ></script>
-    <canvas id="canvas"></canvas>
+    <!-- เพิ่มปุ่มแชร์ -->
+    <div style="text-align: center; margin-top: 20px;">
+      <a href="https://www.facebook.com/sharer/sharer.php?u=" id="facebook-share" target="_blank">
+        <button style="background: #4267B2; color: white; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: 600; margin: 5px;">
+          <i class="fab fa-facebook-f"></i> แชร์บน Facebook
+        </button>
+      </a>
+      <button id="instagram-share" style="background: #C13584; color: white; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: 600; margin: 5px;">
+        <i class="fab fa-instagram"></i> แชร์บน Instagram
+      </button>
+      <button id="tiktok-share" style="background: #000000; color: white; padding: 12px 24px; border-radius: 25px; cursor: pointer; font-weight: 600; margin: 5px;">
+        <i class="fab fa-tiktok"></i> แชร์บน TikTok
+      </button>
+    </div>
+
+    <div style="text-align: center; margin-top: 20px; padding: 10px; color: white; font-size: 0.9rem; background: rgba(0, 0, 0, 0.1);">
+      <p>นายปรีชา แจ้งสว่าง</p>
+      <p>ตำแหน่ง ครู โรงเรียนบ้านตะเคียนช่างเหล็ก</p>
+    </div>
 
     <script>
       const video = document.getElementById("webcam");
-      const canvas = document.getElementById("canvas");
+      const canvas = document.createElement("canvas"); // สร้าง canvas ใหม่
       const capturedImage = document.getElementById("captured-image");
       const captureBtn = document.getElementById("capture-btn");
       const retakeBtn = document.getElementById("retake-btn");
@@ -280,47 +296,43 @@
       const playBtn = document.getElementById("play-btn");
       const pauseBtn = document.getElementById("pause-btn");
       const stopBtn = document.getElementById("stop-btn");
+      const changeLanguageBtn = document.getElementById("change-language-btn");
 
-      // Replace with your Gemini API key
       const API_KEY = "AIzaSyAG64E5QRI_JiRqgyvOh0urpdJeJAO1Cas";
       const API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
-      // Thai story prompt
       const STORY_PROMPT = `จากภาพที่เห็น กรุณาเล่านิทานสั้นๆ สนุกๆ ที่เกี่ยวข้องกับสิ่งที่เห็นในภาพ ความยาวประมาณ 3 ย่อหน้า 
-        ให้มีการดำเนินเรื่องดังนี้:
         1. แนะนำตัวละครหลักจากภาพ
         2. มีเหตุการณ์หรือปัญหาที่เกิดขึ้น
         3. วิธีแก้ปัญหาและบทสรุปที่มีข้อคิด
         4. ห้ามมีลัญลักษณ์พิเศษ
         โดยใช้ภาษาที่เข้าใจง่าย เหมาะสำหรับเด็ก`;
 
+      const ENGLISH_STORY_PROMPT = `From the image you see, please tell a short, fun story related to what is seen in the image. The length should be about 3 paragraphs.
+        1. Introduce the main characters from the image
+        2. Include an event or problem that occurs
+        3. The solution and a conclusion with a moral lesson
+        4. Do not include special symbols
+        Use simple language that is easy to understand and suitable for children`;
+
+      let currentLanguage = 'th'; // เริ่มต้นด้วยภาษาไทย
       let speechSynth = window.speechSynthesis;
       let speaking = false;
       let currentUtterance = null;
-      let currentFacingMode = "user";
 
       async function startWebcam(facingMode = "user") {
         try {
-          // Stop any existing stream
           if (video.srcObject) {
             video.srcObject.getTracks().forEach((track) => track.stop());
           }
-
           const stream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: facingMode },
           });
           video.srcObject = stream;
-          currentFacingMode = facingMode;
         } catch (error) {
           console.error("Error accessing webcam:", error);
           alert("ไม่สามารถเข้าถึงกล้องได้ กรุณาตรวจสอบการอนุญาตใช้งานกล้อง");
         }
-      }
-
-      async function switchCamera() {
-        const newFacingMode =
-          currentFacingMode === "user" ? "environment" : "user";
-        await startWebcam(newFacingMode);
       }
 
       function showImage(imageUrl) {
@@ -337,14 +349,13 @@
         captureBtn.style.display = "inline-block";
         retakeBtn.style.display = "none";
         result.classList.remove("show");
-        stopSpeaking();
       }
 
       function speakText(text) {
         stopSpeaking();
 
         currentUtterance = new SpeechSynthesisUtterance(text);
-        currentUtterance.lang = "th-TH";
+        currentUtterance.lang = currentLanguage === 'th' ? 'th-TH' : 'en-US';
         currentUtterance.rate = 1;
         currentUtterance.pitch = 1;
 
@@ -401,7 +412,7 @@
             contents: [
               {
                 parts: [
-                  { text: STORY_PROMPT },
+                  { text: currentLanguage === 'th' ? STORY_PROMPT : ENGLISH_STORY_PROMPT },
                   {
                     inline_data: {
                       mime_type: "image/jpeg",
@@ -462,31 +473,52 @@
         }
       }
 
+      function changeLanguage() {
+        if (currentLanguage === 'th') {
+          currentLanguage = 'en';
+          changeLanguageBtn.textContent = 'เปลี่ยนภาษาเป็นไทย';
+          resultText.textContent = "Generating story in English...";
+        } else {
+          currentLanguage = 'th';
+          changeLanguageBtn.textContent = 'เปลี่ยนภาษาเป็นภาษาอังกฤษ';
+          resultText.textContent = "กำลังสร้างนิทานเป็นภาษาไทย...";
+        }
+        // ส่งคำขอใหม่เพื่อสร้างนิทานในภาษาที่เลือก
+        const base64Image = capturedImage.src;
+        uploadToGemini(base64Image);
+      }
+
       captureBtn.addEventListener("click", () => {
         const ctx = canvas.getContext("2d");
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-        // Convert canvas to base64 image
         const base64Image = canvas.toDataURL("image/jpeg", 0.9);
         showImage(base64Image);
         uploadToGemini(base64Image);
       });
 
       retakeBtn.addEventListener("click", retakePhoto);
+      changeLanguageBtn.addEventListener("click", changeLanguage);
       playBtn.addEventListener("click", resumeSpeaking);
       pauseBtn.addEventListener("click", pauseSpeaking);
       stopBtn.addEventListener("click", stopSpeaking);
+      document.getElementById("switch-camera").addEventListener("click", () => {
+        const newFacingMode = currentFacingMode === "user" ? "environment" : "user";
+        startWebcam(newFacingMode);
+      });
 
-      document
-        .getElementById("switch-camera")
-        .addEventListener("click", switchCamera);
       window.onload = () => startWebcam("user");
+
+      // ฟังก์ชันแชร์
+      const currentURL = window.location.href;
+      document.getElementById('facebook-share').href += encodeURIComponent(currentURL);
+      document.getElementById('instagram-share').addEventListener('click', () => {
+        alert("แชร์ผ่านแอป Instagram");
+      });
+      document.getElementById('tiktok-share').addEventListener('click', () => {
+        alert("แชร์ผ่านแอป TikTok");
+      });
     </script>
-    <div style="text-align: center; margin-top: 20px; padding: 10px; color: white; font-size: 0.9rem; background: rgba(0, 0, 0, 0.1);">
-      <p>นายปรีชา แจ้งสว่าง</p>
-      <p>ตำแหน่ง ครู โรงเรียนบ้านตะเคียนช่างเหล็ก</p>
-    </div>
   </body>
 </html>
