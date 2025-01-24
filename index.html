@@ -222,27 +222,6 @@
         from { opacity: 0; transform: translateY(-20px); }
         to { opacity: 1; transform: translateY(0); }
       }
-      #chat-box {
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        width: 300px;
-        background: white;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        padding: 10px;
-      }
-      #chat-messages {
-        height: 200px;
-        overflow-y: auto;
-        margin-bottom: 10px;
-      }
-      #chat-input {
-        width: 100%;
-        padding: 10px;
-        border-radius: 25px;
-        border: 1px solid #ccc;
-      }
       .star {
         cursor: pointer;
       }
@@ -354,12 +333,6 @@
       <i class="fas fa-moon"></i> เปลี่ยนธีม
     </button>
 
-    <!-- เพิ่มแชทบ็อกซ์ -->
-    <div id="chat-box">
-      <div id="chat-messages"></div>
-      <input type="text" id="chat-input" placeholder="ถามอะไรก็ได้...">
-    </div>
-
     <script>
       const video = document.getElementById("webcam");
       const canvas = document.createElement("canvas"); // สร้าง canvas ใหม่
@@ -378,9 +351,6 @@
       const shareImageBtn = document.getElementById("share-image-btn");
       const historyBtn = document.getElementById("history-btn");
       const themeToggle = document.getElementById("theme-toggle");
-      const chatBox = document.getElementById("chat-box");
-      const chatMessages = document.getElementById("chat-messages");
-      const chatInput = document.getElementById("chat-input");
       const stars = document.querySelectorAll(".star");
 
       const API_KEY = "AIzaSyAG64E5QRI_JiRqgyvOh0urpdJeJAO1Cas";
