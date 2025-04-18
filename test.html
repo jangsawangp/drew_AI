@@ -2,264 +2,172 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>เล่านิทานจากภาพ</title>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>นิทานเสียงมหัศจรรย์</title>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/toxicity"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
   <style>
-    body { font-family: sans-serif; padding: 1rem; background: #f9f9f9; }
-    video, canvas, img { width: 100%; max-width: 480px; border-radius: 1rem; margin-bottom: 1rem; }
-    button { padding: 0.5rem 1rem; margin: 0.25rem; border-radius: 1rem; border: none; cursor: pointer; }
-    .dark-mode { background: #222; color: #fff; }
-    #spinner { display: none; }
-    .result-box { border: 1px solid #ccc; padding: 1rem; border-radius: 1rem; background: #fff; }
-    .dark-mode .result-box { background: #333; color: #fff; }
-    .star-rating span { font-size: 1.5rem; cursor: pointer; color: gold; }
+    body {
+      font-family: 'Prompt', sans-serif;
+      background: linear-gradient(to right, #f8f9fa, #e0f7fa);
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #4caf50;
+      text-align: center;
+      font-size: 2.5em;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    textarea {
+      width: 100%;
+      height: 120px;
+      padding: 10px;
+      font-size: 1em;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 1em;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      margin: 5px;
+    }
+    #result {
+      margin-top: 20px;
+      padding: 15px;
+      background: #e3f2fd;
+      border-left: 5px solid #2196f3;
+      border-radius: 10px;
+      white-space: pre-wrap;
+      font-size: 1.1em;
+    }
+    .audio-controls {
+      margin-top: 20px;
+    }
   </style>
 </head>
 <body>
-  <h1>เล่านิทานจากภาพ</h1>
-  <video id="video" autoplay playsinline></video>
-  <canvas id="canvas" style="display:none;"></canvas>
-  <img id="capturedImage" style="display:none;"/>
-
-  <div>
-    <button id="capture">📸 ถ่ายภาพ</button>
-    <button id="retake" style="display:none;">🔄 ถ่ายใหม่</button>
-    <button id="switch-camera">🔁 สลับกล้อง</button>
-    <button id="change-language">เปลี่ยนภาษาเป็นภาษาอังกฤษ</button>
-    <button id="theme-toggle">🌓 เปลี่ยนธีม</button>
-  </div>
-
-  <div id="status"></div>
-  <div id="spinner">⏳</div>
-
-  <div class="result-box" id="result" style="display:none;">
-    <h2>📖 นิทานจากภาพ</h2>
-    <p id="resultText"></p>
-    <div>
-      <button id="play">▶️ อ่าน</button>
-      <button id="pause" style="display:none;">⏸️ หยุดชั่วคราว</button>
-      <button id="stop" style="display:none;">⏹️ หยุด</button>
+  <div class="container">
+    <h1>🎉 นิทานเสียงมหัศจรรย์ 🎧</h1>
+    <textarea id="input-text" placeholder="พิมพ์หัวข้อหรือชื่อเรื่องนิทานที่นี่..."></textarea>
+    <br />
+    <button id="generate-btn" style="background: #4caf50; color: white;">
+      <i class="fas fa-magic"></i> สร้างนิทาน
+    </button>
+    <button id="clear-btn" style="background: #f44336; color: white;">
+      <i class="fas fa-trash"></i> ล้างข้อความ
+    </button>
+    <div class="audio-controls">
+      <button id="download-audio-btn" style="background: #9c27b0; color: white;">
+        <i class="fas fa-file-audio"></i> ดาวน์โหลดเสียง
+      </button>
+      <button id="history-btn" style="background: #ffa500;">
+        <i class="fas fa-history"></i> ดูประวัตินิทาน
+      </button>
+      <button id="rate-btn" style="background: #2196f3; color: white;">
+        <i class="fas fa-star"></i> ให้คะแนนนิทาน
+      </button>
     </div>
-    <div>
-      <button id="download">⬇️ ดาวน์โหลด</button>
-      <button id="shareImage">📤 แชร์ภาพ</button>
-      <button id="history">🕘 ประวัตินิทาน</button>
-    </div>
-    <div class="star-rating">
-      ให้คะแนน:
-      <span data-value="1">⭐</span>
-      <span data-value="2">⭐</span>
-      <span data-value="3">⭐</span>
-      <span data-value="4">⭐</span>
-      <span data-value="5">⭐</span>
-    </div>
+    <div id="result"></div>
   </div>
 
   <script>
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
-    const result = document.getElementById("result");
-    const resultText = document.getElementById("resultText");
-    const captureBtn = document.getElementById("capture");
-    const retakeBtn = document.getElementById("retake");
-    const playBtn = document.getElementById("play");
-    const pauseBtn = document.getElementById("pause");
-    const stopBtn = document.getElementById("stop");
-    const downloadBtn = document.getElementById("download");
-    const shareImageBtn = document.getElementById("shareImage");
-    const themeToggle = document.getElementById("theme-toggle");
-    const changeLanguageBtn = document.getElementById("change-language");
-    const historyBtn = document.getElementById("history");
-    const statusDiv = document.getElementById("status");
-    const spinner = document.getElementById("spinner");
-    const stars = document.querySelectorAll(".star-rating span");
-    const capturedImage = document.getElementById("capturedImage");
+    const inputText = document.getElementById("input-text");
+    const resultText = document.getElementById("result");
+    const generateBtn = document.getElementById("generate-btn");
+    const clearBtn = document.getElementById("clear-btn");
+    const rateBtn = document.getElementById("rate-btn");
+    const downloadAudioBtn = document.getElementById("download-audio-btn");
 
-    let currentFacingMode = "user";
-    let currentLanguage = "th";
-    const STORY_PROMPT = "โปรดแต่งนิทานจากภาพนี้ สำหรับเด็กอายุ 7 ขวบ โดยใช้ภาษาที่เข้าใจง่าย สนุก และจบลงด้วยข้อคิด"
-    const ENGLISH_STORY_PROMPT = "Please create a short children's story (age 7) based on this image in English, with a fun tone and a moral at the end."
-    const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=YOUR_API_KEY"
+    let currentLanguage = "th"; // ภาษาเริ่มต้นเป็นไทย
 
-    let speaking = false;
-    let storyHistory = [];
+    // กำหนดนิทานตัวอย่าง
+    const storySamples = {
+      "th": "กาลครั้งหนึ่งนานมาแล้ว...",
+      "en": "Once upon a time..."
+    };
 
-    async function startWebcam(facingMode) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: facingMode },
-          audio: false
-        });
-        video.srcObject = stream;
-        currentFacingMode = facingMode;
-        capturedImage.style.display = "none";
-        result.style.display = "none";
-        retakeBtn.style.display = "none";
-      } catch (error) {
-        console.error("Camera Error:", error);
-        alert("ไม่สามารถเข้าถึงกล้องได้");
+    generateBtn.addEventListener("click", () => {
+      const text = inputText.value.trim();
+      if (text === "") {
+        resultText.textContent = "กรุณาพิมพ์ชื่อเรื่องก่อนนะคะ";
+        return;
       }
-    }
+      // ตัวอย่างสร้างนิทานแบบง่าย
+      const story = `${storySamples[currentLanguage]} มีเด็กคนหนึ่งชื่อว่า "${text}" ซึ่งชอบผจญภัยในโลกแห่งจินตนาการ...`;
+      resultText.textContent = story;
 
-    function retakePhoto() {
-      capturedImage.style.display = "none";
-      video.style.display = "block";
-      result.style.display = "none";
-      retakeBtn.style.display = "none";
-      stopSpeaking();
-    }
-
-    function showImage(dataUrl) {
-      capturedImage.src = dataUrl;
-      capturedImage.style.display = "block";
-      video.style.display = "none";
-      retakeBtn.style.display = "inline-block";
-    }
-
-    function speakText(text) {
-      const utterance = new SpeechSynthesisUtterance(text);
+      // อ่านออกเสียง
+      const utterance = new SpeechSynthesisUtterance(story);
       utterance.lang = currentLanguage === "th" ? "th-TH" : "en-US";
       speechSynthesis.speak(utterance);
-      speaking = true;
-      playBtn.style.display = "none";
-      pauseBtn.style.display = "inline-block";
-      stopBtn.style.display = "inline-block";
-    }
+    });
 
-    function pauseSpeaking() {
-      if (speaking) {
-        speechSynthesis.pause();
-        playBtn.style.display = "inline-block";
-        pauseBtn.style.display = "none";
-      }
-    }
+    clearBtn.addEventListener("click", () => {
+      inputText.value = "";
+      resultText.textContent = "";
+    });
 
-    function resumeSpeaking() {
-      if (speechSynthesis.paused) {
-        speechSynthesis.resume();
-        playBtn.style.display = "none";
-        pauseBtn.style.display = "inline-block";
-      }
-    }
-
-    function stopSpeaking() {
-      if (speaking) {
-        speechSynthesis.cancel();
-        speaking = false;
-        playBtn.style.display = "inline-block";
-        pauseBtn.style.display = "none";
-        stopBtn.style.display = "none";
-      }
-    }
-
-    playBtn.addEventListener("click", () => {
-      if (speechSynthesis.paused) {
-        resumeSpeaking();
-      } else {
-        speakText(resultText.textContent);
+    rateBtn.addEventListener("click", () => {
+      const rating = prompt("ให้คะแนนนิทานเรื่องนี้ (1-5 ดาว):");
+      if (rating) {
+        alert(`ขอบคุณสำหรับคะแนน ${rating} ดาวค่ะ!`);
       }
     });
 
-    pauseBtn.addEventListener("click", pauseSpeaking);
-    stopBtn.addEventListener("click", stopSpeaking);
+    // ดาวน์โหลดเสียงจากข้อความนิทาน
+    downloadAudioBtn.addEventListener("click", () => {
+      const text = resultText.textContent;
+      if (!text) {
+        alert("ยังไม่มีนิทานให้ดาวน์โหลดเสียงค่ะ");
+        return;
+      }
 
-    changeLanguageBtn.addEventListener("click", () => {
-      currentLanguage = currentLanguage === 'th' ? 'en' : 'th';
-      changeLanguageBtn.textContent = currentLanguage === 'th' ? "เปลี่ยนภาษาเป็นภาษาอังกฤษ" : "Switch to Thai";
-    });
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = currentLanguage === "th" ? "th-TH" : "en-US";
+      utterance.voice = speechSynthesis.getVoices().find(voice =>
+        voice.lang.startsWith(currentLanguage === "th" ? "th" : "en")
+      );
 
-    captureBtn.addEventListener("click", async () => {
-      spinner.style.display = "inline-block";
-      statusDiv.textContent = "กำลังประมวลผลภาพเพื่อเล่านิทาน...";
+      const audioContext = new AudioContext();
+      const dest = audioContext.createMediaStreamDestination();
+      const mediaRecorder = new MediaRecorder(dest.stream);
+      let chunks = [];
 
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      const ctx = canvas.getContext("2d");
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      const imageDataURL = canvas.toDataURL("image/jpeg");
-
-      showImage(imageDataURL);
-      const prompt = currentLanguage === 'th' ? STORY_PROMPT : ENGLISH_STORY_PROMPT;
-      await generateStory(imageDataURL, prompt);
-    });
-
-    async function generateStory(imageDataURL, prompt) {
-      const base64Image = imageDataURL.split(',')[1];
-      const requestBody = {
-        contents: [{
-          parts: [
-            { text: prompt },
-            { inlineData: { mimeType: "image/jpeg", data: base64Image } }
-          ]
-        }]
+      mediaRecorder.ondataavailable = event => {
+        chunks.push(event.data);
       };
 
-      try {
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(requestBody)
-        });
-
-        const data = await response.json();
-        const storyText = data?.candidates?.[0]?.content?.parts?.[0]?.text || "ไม่สามารถสร้างนิทานจากภาพนี้ได้ กรุณาลองใหม่อีกครั้ง";
-
-        resultText.textContent = storyText;
-        result.style.display = "block";
-        spinner.style.display = "none";
-        statusDiv.textContent = "";
-        storyHistory.push({ image: imageDataURL, story: storyText });
-      } catch (error) {
-        console.error("Error generating story:", error);
-        resultText.textContent = "เกิดข้อผิดพลาด กรุณาลองใหม่";
-        spinner.style.display = "none";
-        statusDiv.textContent = "";
-      }
-    }
-
-    retakeBtn.addEventListener("click", retakePhoto);
-    document.getElementById("switch-camera").addEventListener("click", () => {
-      const newFacingMode = currentFacingMode === "user" ? "environment" : "user";
-      startWebcam(newFacingMode);
-    });
-
-    themeToggle.addEventListener("click", () => {
-      document.body.classList.toggle("dark-mode");
-    });
-
-    stars.forEach(star => {
-      star.addEventListener("click", () => {
-        const rating = star.dataset.value;
-        alert(`ขอบคุณที่ให้คะแนน ${rating} ดาว!`);
-      });
-    });
-
-    historyBtn.addEventListener("click", () => {
-      const historyText = storyHistory.map((entry, i) => `เรื่องที่ ${i + 1}:\n${entry.story}`).join("\n\n---\n\n");
-      alert(historyText || "ยังไม่มีประวัตินิทาน");
-    });
-
-    shareImageBtn.addEventListener("click", () => {
-      html2canvas(result).then(canvas => {
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        const audioURL = URL.createObjectURL(blob);
         const link = document.createElement("a");
-        link.download = "นิทานจากภาพ.png";
-        link.href = canvas.toDataURL("image/png");
+        link.href = audioURL;
+        link.download = "นิทานเสียงของคุณ.webm";
         link.click();
-      });
-    });
+      };
 
-    downloadBtn.addEventListener("click", () => {
-      const blob = new Blob([resultText.textContent], { type: "text/plain;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "นิทานจากภาพ.txt";
-      link.click();
-      URL.revokeObjectURL(url);
-    });
+      const source = audioContext.createMediaStreamSource(dest.stream);
+      source.connect(audioContext.destination);
+      speechSynthesis.speak(utterance);
+      mediaRecorder.start();
 
-    startWebcam(currentFacingMode);
+      utterance.onend = () => {
+        mediaRecorder.stop();
+      };
+    });
   </script>
 </body>
 </html>
